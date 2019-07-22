@@ -1,23 +1,22 @@
 node {
-    stage('SCM'){
-        git 'git@github.com:lyogi4091/Ex-2.git'
-    stage('Building Docker image'){  
-                sh 'sudo docker build -t ubuntu_image_remotely .';
-                sh 'sudo docker run -it -d --name testcontainer_remote_ex2 -v /home/ciuser/Ex-2:/opt ubuntu_image_remotely';
-        }
-	stage ('Format check'){
-	    try {
-	        sh 'pycodestyle --ignore=E501 python_good.py';
-		    echo 'python_good.py is in good format'
+    stage('Building Docker image'){
+        checkout scm
+        sh 'sudo docker build -t ubuntu_image_remotely .'
+        sh 'sudo docker run -it -d --name testcontainer_remote -v /home/ciuser/Ex-2:/opt ubuntu_image_remotely'
+    stage ('Format Check'){
+        try{
+            sh 'sudo docker exec testcontainer_remote pycodestyle --ignore=E501 /opt/python_good.py'
+            println "python_good.py is already in good format "
             }catch(x){
-                println "python_good.py is in bad format"
-               }
-            try {
-		    sh 'pycodestyle --ignore=E501 python_bad.py';
-		    echo 'python_bad.py is in good format'
+                println "python_good.py is in good format. "
+                }
+        try{
+            sh 'sudo docker exec testcontainer_remote pycodestyle --ignore=E501 /opt/python_bad.py'
+            println "python_bad.py is already in good format"
             }catch(x){
-                println 'python_bad.py is in bad format'
-               }
-	}
+                println "python_bad.py is in bad format."
+                }
     }
+
+        }
 }
